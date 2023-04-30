@@ -1,11 +1,16 @@
 import { useState } from "react";
 import "./styles/global.css";
 
+
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { supabase } from "./lib/supabase";
 
 const createUserFormSchema = z.object({
+  avatar: z.instanceof(FileList)
+  .transform(list => list.item(0)!)
+  .refine(file => file.size <= 5*1024*1024, 'O arquivo precisa ter no maximo 5mb'),
   name: z
     .string()
     .nonempty("O nome é obrigatório")
@@ -26,15 +31,14 @@ const createUserFormSchema = z.object({
       return email.endsWith("@gmail.com");
     }, "O e-mail precisa ser do google"),
   password: z.string().min(6, "A senha precisa ter no minimo 6 caracteres"),
-  techs: z.array(
-    z.object({
-      title: z.string().nonempty("O titulo é obrigatório"),
-      knowledge: z.number()
-      .min(1)
-      .max(100)
-      
-    })
-  ),
+  techs: z
+    .array(
+      z.object({
+        title: z.string().nonempty("O titulo é obrigatório"),
+        knowledge: z.coerce.number().min(1).max(100),
+      })
+    )
+    .min(2, "Insira pelo menos 2 tecnologias"),
 });
 
 type CreateUserFormData = z.infer<typeof createUserFormSchema>;
@@ -59,18 +63,32 @@ function App() {
     append({ title: "", knowledge: 0 });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function createUser(data: any) {
+  
+  async function createUser(data: CreateUserFormData) {
+    await supabase.storage.from('Forms-react').upload(
+    data.avatar.name, 
+    data.avatar),
+
     setOutput(JSON.stringify(data, null, 2));
   }
 
   return (
     <>
-      <main className="h-screen bg-zinc-950  text-zinc-50 flex flex-col gap-10  items-center justify-center">
+      <main className="h-screen bg-zinc-950  text-zinc-50 flex  gap-32  items-center justify-center">
         <form
           onSubmit={handleSubmit(createUser)}
           className="flex flex-col gap-4 w-full max-w-xs"
         >
+          <div className="flex flex-col gap-1">
+            <label>Avatar</label>
+            <input
+              type="file"
+              accept="image/"
+              {...register("avatar")}
+            />
+            {errors.avatar && <span className="text-red-500 text-sm">{errors.avatar.message}</span>}
+          </div>
+
           <div className="flex flex-col gap-1">
             <label>Nome</label>
             <input
@@ -78,8 +96,9 @@ function App() {
               {...register("name")}
               className="border border-zinc-800 shadow-sm rounded h-10 px-3 bg-zinc-900 text-white"
             />
-            {errors.name && <span>{errors.name.message}</span>}
+            {errors.name && <span className="text-red-500 text-sm">{errors.name.message}</span>}
           </div>
+
           <div className="flex flex-col gap-1">
             <label>E-mail</label>
             <input
@@ -87,7 +106,7 @@ function App() {
               {...register("email")}
               className="border border-zinc-800 shadow-sm rounded h-10 px-3 bg-zinc-900 text-white"
             />
-            {errors.email && <span>{errors.email.message}</span>}
+            {errors.email && <span className="text-red-500 text-sm">{errors.email.message}</span>}
           </div>
 
           <div className="flex flex-col gap-1">
@@ -97,7 +116,7 @@ function App() {
               {...register("password")}
               className="border border-zinc-800 shadow-sm rounded h-10 bg-zinc-900 text-white px-3"
             />
-            {errors.password && <span>{errors.password.message}</span>}
+            {errors.password && <span className="text-red-500 text-sm">{errors.password.message}</span>}
           </div>
 
           <div className="flex flex-col gap-1">
@@ -123,7 +142,7 @@ function App() {
                     />
 
                     {errors.techs?.[index]?.title && (
-                      <span>{errors.techs?.[index]?.title?.message}</span>
+                      <span className="text-red-500 text-sm">{errors.techs?.[index]?.title?.message}</span>
                     )}
                   </div>
                   <div className="flex flex-col gap-1">
@@ -133,12 +152,14 @@ function App() {
                       className="w-16 border border-zinc-800 shadow-sm rounded h-10 bg-zinc-900 text-white px-3"
                     />
                     {errors.techs?.[index]?.knowledge && (
-                      <span>{errors.techs?.[index]?.knowledge?.message}</span>
+                      <span className="text-red-500 text-sm">{errors.techs?.[index]?.knowledge?.message}</span>
                     )}
                   </div>
                 </div>
               );
             })}
+
+            {errors.techs && <span className="text-red-500 text-sm">{errors.techs.message}</span>}
           </div>
 
           <button
