@@ -10,12 +10,12 @@ import { z } from 'zod'
 
 
 const createUserSchema = z.object({
-  Name: z.string().nonempty("O Nome e obrigatorio!"),
-  UserName: z.string().nonempty("Seu nome de usuario e obrigatorio!"),
-  Email: z.string().email("Formato de e-mail invalido!"),
-  Password: z.string().min(8, "Sua senha e pequena de mais!"),
-  CellNumber: z.string().min(11, "Seu numero de telefone e invalido!"),
-  Birthday: z.string().nonempty("Sua data de aniversario e obrigatoria!"),
+  Name: z.string().nonempty("The name is mandatory!"),
+  UserName: z.string().nonempty("Your username is required!"),
+  Email: z.string().email("Invalid email format!"),
+  Password: z.string().min(8, "Your password must be longer!"),
+  CellNumber: z.string().min(11, "Your phone number is invalid!"),
+  Birthday: z.string().nonempty("Your birthday is mandatory!"),
 })
 
 type createUserforData = z.infer<typeof createUserSchema>
