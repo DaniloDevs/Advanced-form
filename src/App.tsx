@@ -1,179 +1,115 @@
-import { useState } from "react";
-import "./styles/global.css";
-
-
-import { useForm, useFieldArray } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { supabase } from "./lib/supabase";
-
-const createUserFormSchema = z.object({
-  avatar: z.instanceof(FileList)
-  .transform(list => list.item(0)!)
-  .refine(file => file.size <= 5*1024*1024, 'O arquivo precisa ter no maximo 5mb'),
-  name: z
-    .string()
-    .nonempty("O nome é obrigatório")
-    .transform((name) => {
-      return name
-        .trim()
-        .split(" ")
-        .map((word) => {
-          return word[0].toLocaleUpperCase().concat(word.substring(1));
-        })
-        .join(" ");
-    }),
-  email: z
-    .string()
-    .nonempty("O e-mail é obrigatório")
-    .email("Formato de e-mail invalido")
-    .refine((email) => {
-      return email.endsWith("@gmail.com");
-    }, "O e-mail precisa ser do google"),
-  password: z.string().min(6, "A senha precisa ter no minimo 6 caracteres"),
-  techs: z
-    .array(
-      z.object({
-        title: z.string().nonempty("O titulo é obrigatório"),
-        knowledge: z.coerce.number().min(1).max(100),
-      })
-    )
-    .min(2, "Insira pelo menos 2 tecnologias"),
-});
-
-type CreateUserFormData = z.infer<typeof createUserFormSchema>;
+import './styles/global.css'
 
 function App() {
-  const [output, setOutput] = useState("");
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    control,
-  } = useForm<CreateUserFormData>({
-    resolver: zodResolver(createUserFormSchema),
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "techs",
-  });
-
-  function addNweTech() {
-    append({ title: "", knowledge: 0 });
-  }
-
-  
-  async function createUser(data: CreateUserFormData) {
-    await supabase.storage.from('Forms-react').upload(
-    data.avatar.name, 
-    data.avatar),
-
-    setOutput(JSON.stringify(data, null, 2));
-  }
-
   return (
     <>
-      <main className="h-screen bg-zinc-950  text-zinc-50 flex  gap-32  items-center justify-center">
-        <form
-          onSubmit={handleSubmit(createUser)}
-          className="flex flex-col gap-4 w-full max-w-xs"
-        >
-          <div className="flex flex-col gap-1">
-            <label>Avatar</label>
-            <input
-              type="file"
-              accept="image/"
-              {...register("avatar")}
-            />
-            {errors.avatar && <span className="text-red-500 text-sm">{errors.avatar.message}</span>}
-          </div>
+      <main className='h-screen bg-'>
+        <div className="border-b  border-gray-400 pb-4  w-1/2 flex flex-col m-auto mt-8">
+          <h2 className="text-base font-semibold leading-7 text-gray-900">Personal Information</h2>
+          <p className=" text-sm leading-6 text-gray-600">Use a permanent address where you can receive mail.</p>
 
-          <div className="flex flex-col gap-1">
-            <label>Nome</label>
-            <input
-              type="text"
-              {...register("name")}
-              className="border border-zinc-800 shadow-sm rounded h-10 px-3 bg-zinc-900 text-white"
-            />
-            {errors.name && <span className="text-red-500 text-sm">{errors.name.message}</span>}
-          </div>
+          <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+            <div className="sm:col-span-3">
+              <label htmlFor="first-name" className="block text-sm font-medium leading-6 text-gray-900">
+                First name
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="first-name"
+                  id="first-name"
+                  autoComplete="given-name"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
 
-          <div className="flex flex-col gap-1">
-            <label>E-mail</label>
-            <input
-              type="email"
-              {...register("email")}
-              className="border border-zinc-800 shadow-sm rounded h-10 px-3 bg-zinc-900 text-white"
-            />
-            {errors.email && <span className="text-red-500 text-sm">{errors.email.message}</span>}
-          </div>
+            <div className="sm:col-span-3">
+              <label htmlFor="last-name" className="block text-sm font-medium leading-6 text-gray-900">
+                Last name
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="last-name"
+                  id="last-name"
+                  autoComplete="family-name"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor="">Senha </label>
-            <input
-              type="password"
-              {...register("password")}
-              className="border border-zinc-800 shadow-sm rounded h-10 bg-zinc-900 text-white px-3"
-            />
-            {errors.password && <span className="text-red-500 text-sm">{errors.password.message}</span>}
-          </div>
+            <div className="sm:col-span-4">
+              <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
+                Email address
+              </label>
+              <div className="mt-2">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor="" className="flex items-center justify-between">
-              Tecnologias
-              <button
-                type="button"
-                onClick={addNweTech}
-                className="text-emerald-500 text-xs"
-              >
-                Adicionar
-              </button>
-            </label>
+            <div className="col-span-full">
+              <label htmlFor="street-address" className="block text-sm font-medium leading-6 text-gray-900">
+                Street address
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="street-address"
+                  id="street-address"
+                  autoComplete="street-address"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
 
-            {fields.map((field, index) => {
-              return (
-                <div key={field.id} className="flex gap-2">
-                  <div className="flex-1 flex-col gap-1">
-                    <input
-                      type="text"
-                      {...register(`techs.${index}.title`)}
-                      className=" flex-1 border border-zinc-800 shadow-sm rounded h-10 bg-zinc-900 text-white px-3"
-                    />
+            <div className="sm:col-span-2 sm:col-start-1">
+              <label htmlFor="city" className="block text-sm font-medium leading-6 text-gray-900">
+                City
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="city"
+                  id="city"
+                  autoComplete="address-level2"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
 
-                    {errors.techs?.[index]?.title && (
-                      <span className="text-red-500 text-sm">{errors.techs?.[index]?.title?.message}</span>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <input
-                      type="number"
-                      {...register(`techs.${index}.knowledge`)}
-                      className="w-16 border border-zinc-800 shadow-sm rounded h-10 bg-zinc-900 text-white px-3"
-                    />
-                    {errors.techs?.[index]?.knowledge && (
-                      <span className="text-red-500 text-sm">{errors.techs?.[index]?.knowledge?.message}</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-
-            {errors.techs && <span className="text-red-500 text-sm">{errors.techs.message}</span>}
+            <div className="sm:col-span-2">
+              <label htmlFor="cell number" className="block text-sm font-medium leading-6 text-gray-900">
+                cell number
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="cell number"
+                  id="region"
+                  autoComplete="address-level1"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
           </div>
 
           <button
             type="submit"
-            className="bg-emerald-500 rounded font-semibold text-white h-10 hover:bg-emerald-600"
+            className="flex w-full justify-center rounded-md mt-5 bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
-            Salvar
+           Save Form
           </button>
-        </form>
-
-        <pre>{output}</pre>
+        </div>
       </main>
     </>
-  );
+  )
 }
 
-export default App;
+export default App
