@@ -3,7 +3,7 @@
 
 Esse projeto foi feito ao longos de alguns messes a fim de testar meus conhecimentos em next e no framework Zod. 
 
-Esse formulario feito em zod apresenta validação de campos e ao final do submit ele retorna um JSON. Caso o usario tente fazer o envio do form, o mesmo fara uma validação e apresentara erro em cada campo vazio 
+Esse formulario feito em zod apresenta validação de campos e ao final do submit ele retorna um JSON. Caso o usuario tente fazer o envio do form, o mesmo fara uma validação e apresentara erro em cada campo vazio 
 
 
 ## Screenshots
