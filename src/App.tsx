@@ -8,6 +8,7 @@ import { z } from 'zod'
 
 
 
+
 const createUserSchema = z.object({
   Name: z.string().nonempty("O Nome e obrigatorio!"),
   UserName: z.string().nonempty("Seu nome de usuario e obrigatorio!"),
@@ -15,28 +16,27 @@ const createUserSchema = z.object({
   Password: z.string().min(8, "Sua senha e pequena de mais!"),
   CellNumber: z.string().min(11, "Seu numero de telefone e invalido!"),
   Birthday: z.string().nonempty("Sua data de aniversario e obrigatoria!"),
-  
 })
+
+type createUserforData = z.infer<typeof createUserSchema>
+
 
 function App() {
   const [ output, setOutput ] = useState('')
   const { 
     register, 
     handleSubmit, 
-    formState: {errors} } = useForm({
-    resolver: zodResolver(createUserSchema),
+    formState: {errors}} = useForm<createUserforData>({resolver: zodResolver(createUserSchema),
   })
 
 
   function createUser (data: any) { 
     setOutput(JSON.stringify(data, null, 2))
   }
-
-
   return (
     <>
-      <main className='flex gap-12 items-center m-auto'>
-        <div className="border-b  border-gray-400 pb-4  w-1/2 flex flex-col m-auto mt-8">
+      <main  className='flex items-center px-24 py-24 gap-12 h-screen w-screen bg-gray-200'>
+        <div className="border-b  border-gray-400  w-1/2 flex flex-col">
           <h2 className="text-base font-semibold leading-7 text-gray-900">Personal Information</h2>
           <p className=" text-sm leading-6 text-gray-600">Use a permanent address where you can receive mail.</p>
 
@@ -153,7 +153,7 @@ function App() {
           </form>
         </div>
 
-        <pre>{output}</pre>
+        {output.valueOf() && <pre className='p-12 bg-slate-200 border border-slate-700 rounded-lg'>{output}</pre>}
       </main>
     </>
   )
